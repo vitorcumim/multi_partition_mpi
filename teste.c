@@ -17,7 +17,7 @@ int cmpfunc(const void *a, const void *b) {
 }
 
 // Função multi_partition_mpi
-void multi_partition_mpi(long long *input, int n, long long *P, int np,long long *output, int *nO) {
+void multi_partition_mpi(long long *input, int local_size, long long *P, int np,long long *output, int *nO) {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 

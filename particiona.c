@@ -3,9 +3,16 @@
 #include <stdio.h>
 #include <limits.h>
 #include <string.h>
+#include "chrono.h"
+#include "verifica_particoes.h"
 
-// Gera numeros aleatorios long long
-double geraAleatorioLL() {
+#define NTIMES 10
+
+// Definindo o número total de elementos como variável global 
+int nTotalElements;
+
+// Gera números aleatórios long long
+long long geraAleatorioLL() {
     int a = rand();
     int b = rand();
     return (long long)a * 100 + b;
@@ -17,21 +24,21 @@ int cmpfunc(const void *a, const void *b) {
 }
 
 // Função multi_partition_mpi
-void multi_partition_mpi(long long *input, int local_size, long long *P, int np,long long *output, int *nO) {
+void multi_partition_mpi(long long *input, int local_size, long long *P, int np, long long *output, int *nO) {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     // 1. Particionar localmente
-    int *send_counts = (int *)calloc(np, sizeof(int)); // Contagem de elementos para cada faixa
+    int *send_counts = (int *)calloc(np, sizeof(int));
     long long **local_bins = (long long **)malloc(np * sizeof(long long *));
-
     for (int i = 0; i < np; i++) {
         local_bins[i] = (long long *)malloc(local_size * sizeof(long long));
     }
 
+    // Particionamento dos dados
     for (int i = 0; i < local_size; i++) {
         for (int j = 0; j < np; j++) {
-            if (input[i] < P[j]) {
+            if (input[i] <= P[j]) {
                 local_bins[j][send_counts[j]++] = input[i];
                 break;
             }
@@ -91,8 +98,12 @@ void multi_partition_mpi(long long *input, int local_size, long long *P, int np,
     free(recv_buffer);
 }
 
+// Program Principal
 int main(int argc, char **argv) {
     MPI_Init(&argc, &argv);
+
+    // Criando cronometro.
+    chronometer_t parallelReductionTime;
 
     int rank, nprocs;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -102,7 +113,7 @@ int main(int argc, char **argv) {
     srand(2024 * 100 + rank);
 
     // Configuração do tamanho total dos elementos e local
-    int nTotalElements = 8000000; // Obtido da linha de comando em aplicação real
+    nTotalElements = atoi(argv[1]);
     int local_size = nTotalElements / nprocs;
 
     // Geração do vetor Input
@@ -125,11 +136,26 @@ int main(int argc, char **argv) {
     MPI_Bcast(P, nprocs, MPI_LONG_LONG, 0, MPI_COMM_WORLD);
 
     // Buffer de saída e contagem
-    long long *output = (long long *)malloc(local_size * sizeof(long long));
+    long long *output = (long long *)malloc(nTotalElements * sizeof(long long));
     int nO;
 
-    // Chama a função multi_partition_mpi
-    multi_partition_mpi(input, local_size, P, nprocs, output, &nO);
+    // Iniciando o cronometro.
+    chrono_reset(&parallelReductionTime);
+    chrono_start(&parallelReductionTime);
+
+    for (int i = 0; i < NTIMES; i++) {
+        // Chama a função multi_partition_mpi
+        multi_partition_mpi(input, local_size, P, nprocs, output, &nO);
+    }
+
+    // Para o cronometro e imprime o tempo.
+    chrono_stop(&parallelReductionTime);
+
+    double total_time_in_seconds = (double)chrono_gettotal(&parallelReductionTime) / ((double)1000*1000*1000);
+    printf("total_time_in_seconds: %lf s\n", total_time_in_seconds);
+
+    // Verifica se o particionamento está correto
+    verifica_particoes(input,local_size,P,nprocs,output,&nO);
 
     // Exibe informações sobre o processo
     printf("Rank %d recebeu %d elementos.\n", rank, nO);

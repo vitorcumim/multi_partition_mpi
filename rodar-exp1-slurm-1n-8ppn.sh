@@ -25,14 +25,7 @@ MAX_EXECS=10
 echo "MAX_EXECS " $MAX_EXECS
 
 echo "Executando $NTIMES vezes com $1 elementos:"
-for i in $(seq 1 $NTIMES);
-do
-    echo "-----------------------------" >>saida.txt
-    if [ $i -le $MAX_EXECS ];
-    then 
-        mpirun ./particiona $1 | tee -a saida.txt | grep -oP '(?<=total_time_in_seconds: )[^ ]*' 
-    fi  
-done
+mpirun ./particiona $1 | tee -a saida.txt | grep -v "vazão:" | grep -oP '(?<=total_time_in_seconds: )[^ ]*' 
 
 # Load necessary modules (adjust paths as needed)
 #module load openmpi/4.1.4

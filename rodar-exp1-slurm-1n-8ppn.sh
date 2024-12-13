@@ -1,15 +1,15 @@
 #!/bin/bash
-SBATCH --exclusive
-SBATCH --nodes=1
-SBATCH --ntasks-per-node=8
-SBATCH --job-name=mpihello_job
+#SBATCH --exclusive
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=8
+#SBATCH --job-name=particion_mpi_job
 echo -----------------------------------
 echo -----------------------------------
 echo -----------------------------------
 echo ---------- ATENCAO: usar --exclusive na linha de comando
 echo -----------------------------------
 
-SBATCH --output=saida.out
+##### SBATCH --output=saida.out
 
 echo "$0 rodando no host " `hostname`  
 echo "$0 rodando no host " `hostname` >saida.txt

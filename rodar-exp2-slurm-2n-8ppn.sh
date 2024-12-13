@@ -2,7 +2,7 @@
 #SBATCH --exclusive
 #SBATCH --nodes=2
 #SBATCH --ntasks-per-node=8
-#SBATCH --job-name=mpihello_job
+#SBATCH --job-name=particion_mpi_job
 echo -----------------------------------
 echo -----------------------------------
 echo -----------------------------------

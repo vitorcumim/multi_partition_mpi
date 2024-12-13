@@ -153,6 +153,8 @@ int main(int argc, char **argv) {
 
     double total_time_in_seconds = (double)chrono_gettotal(&parallelReductionTime) / ((double)1000*1000*1000);
     printf("total_time_in_seconds: %lf s\n", total_time_in_seconds);
+    double vazao = ((double)nTotalElements/total_time_in_seconds) / ((double)1000*1000*1000);
+    printf("vazão(MEPS): %lf\n",vazao);
 
     // Verifica se o particionamento está correto
     verifica_particoes(input,local_size,P,nprocs,output,&nO);
